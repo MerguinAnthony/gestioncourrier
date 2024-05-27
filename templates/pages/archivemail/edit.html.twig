@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des courriers{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="card p-4 shadow-lg">
+        <h1 class="text-center mb-4">Gestion des courriers</h1>
+
+        {% if app.session.flashBag.has('success') %}
+            <div class="alert alert-success">
+                {% for message in app.session.flashBag.get('success') %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if app.session.flashBag.has('error') %}
+            <div class="alert alert-danger">
+                {% for message in app.session.flashBag.get('error') %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+            <!-- Ajout du bouton retour -->
+        <div class="row my-5">
+            <div class="col">
+                <a href="javascript:history.go(-1)" class="btn btn-primary">Retour</a>
+            </div>
+        </div>
+        <hr class="w-75 mx-auto my-4">
+        <div class="row">
+            <div class="col-md-6">
+                <h2 class="h4 mb-3">Modifier un courrier</h2>
+                {{ form_start(form) }}
+                <div class="mb-3">
+                    {{ form_label(form.sender, 'Expéditeur', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.sender, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.object, 'Objet', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.object, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.fileFile1, 'Fichier', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.fileFile1, {'attr': {'class': 'form-control', 'onchange': 'previewFile(this)'}}) }}
+                </div>
+                {{ form_end(form) }}
+            </div>
+
+            <div class="col-md-6">
+                <h2 class="h4 mb-3">Prévisualisation du fichier</h2>
+                <div id="previewContainer" class="d-flex justify-content-center align-items-center">
+                    <img id="imagePreview" src="#" alt="Image Preview" style="max-width: 100%; display: none;" class="rounded-4">
+                    <iframe id="filePreview" style="width: 100%; height: 500px; display: none; border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewFile(input) {
+        var imagePreview = document.getElementById('imagePreview');
+        var filePreview = document.getElementById('filePreview');
+        var savedFilePreview = document.getElementById('savedFilePreview');
+
+        if (input.files && input.files[0]) {
+            var file = input.files[0];
+            var reader = new FileReader();
+            var fileType = file.type;
+
+            reader.onload = function(e) {
+                if (fileType.startsWith('image/')) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    filePreview.style.display = 'none';
+                } else {
+                    filePreview.src = e.target.result;
+                    filePreview.style.display = 'block';
+                    imagePreview.style.display = 'none';
+                }
+                if (savedFilePreview) {
+                    savedFilePreview.style.display = 'none';
+                }
+            };
+
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,7 @@
+vich_uploader:
+  db_driver: orm
+  mappings:
+    mail:
+      uri_prefix: /images/products
+      upload_destination: "%env(DOWNLOAD_DIRECTORY)%"
+      namer: Vich\UploaderBundle\Naming\SmartUniqueNamer

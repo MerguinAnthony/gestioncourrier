@@ -1,0 +1,264 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des courriers{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="card p-4 shadow-lg">
+        <h1 class="text-center mb-4">Gestion des courriers</h1>
+
+        {% if app.session.flashBag.has('success') %}
+            <div class="alert alert-success">
+                {% for message in app.session.flashBag.get('success') %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if app.session.flashBag.has('error') %}
+            <div class="alert alert-danger">
+                {% for message in app.session.flashBag.get('error') %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-6">
+                <h2 class="h4 mb-3">Ajouter un courrier</h2>
+                {{ form_start(form) }}
+                <div class="mb-3">
+                    {{ form_label(form.sender, 'Expéditeur', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.sender, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.object, 'Objet', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.object, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.fileFile1, 'Fichier', {'label_attr': {'class': 'form-label'}}) }}
+                    <div class="input-group">
+                        {{ form_widget(form.fileFile1, {'attr': {'class': 'form-control', 'onchange': 'previewFile(this, 2)'}}) }}
+                        <button type="button" class="btn btn-primary ms-5" onclick="showModalPreview()">Agrandir</button>
+                    </div>
+                </div>
+                <div class="mb-3 d-none" id="fileFile2-group">
+                    {{ form_label(form.fileFile2, 'Fichier', {'label_attr': {'class': 'form-label'}}) }}
+                    <div class="input-group">
+                        {{ form_widget(form.fileFile2, {'attr': {'class': 'form-control', 'onchange': 'previewFile(this, 3)'}}) }}
+                    </div>
+                </div>
+                <div class="mb-3 d-none" id="fileFile3-group">
+                    {{ form_label(form.fileFile3, 'Fichier', {'label_attr': {'class': 'form-label'}}) }}
+                    <div class="input-group">
+                        {{ form_widget(form.fileFile3, {'attr': {'class': 'form-control', 'onchange': 'previewFile(this)'}}) }}
+                    </div>
+                </div>
+                {{ form_end(form) }}
+            </div>
+
+            <div class="col-md-6">
+                <h2 class="h4 mb-3">Prévisualisation du fichier</h2>
+                <div id="previewContainer" class="d-flex justify-content-center align-items-center">
+                    <img id="imagePreview" src="#" alt="Image Preview" style="max-width: 100%; display: none; cursor: pointer;" onclick="showModalPreview()">
+                    <iframe id="filePreview" style="width: 100%; height: 500px; display: none; border: none; cursor: pointer;" onclick="showModalPreview()"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-3 w-75 mx-auto">
+
+        <div class="row align-items-center mt-4">
+            <div class="col-md-8">
+                <h2 class="h4 my-3">Liste des courriers</h2>
+            </div>
+
+       
+            <div class="col-md-4 text-md-end">
+                <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                    <h5 class="me-4">Pagination</h5>
+                    <div class="btn-group me-2" role="group" aria-label="First group">
+                        <a class="btn btn-secondary" href="{{ path('app_mail_change_paginate_5') }}">5</a>
+                        <a class="btn btn-secondary" href="{{ path('app_mail_change_paginate_10') }}">10</a>
+                        <a class="btn btn-secondary" href="{{ path('app_mail_change_paginate_50') }}">50</a>
+                        <a class="btn btn-secondary" href="{{ path('app_mail_change_paginate_100') }}">100</a>
+                    </div>
+                                </div>
+            </div>
+        </div>
+ {{ form_start(searchForm, {'attr': {'class': 'd-flex'}}) }}
+        {{ form_widget(searchForm.query, {'attr': {'class': 'form-control', 'placeholder': 'Rechercher', 'id': 'search-query'}}) }}
+        <ul id="suggestions-list" class="list-group mt-2" style="display:none;"></ul>
+        <button class="btn btn-dark mx-2 my-2 my-sm-0" type="submit">Rechercher</button>
+        <a href="{{ path('app_mail_index') }}" class="btn btn-light mx-2 my-2 my-sm-0">Réinitialiser</a>
+      {{ form_end(searchForm) }}
+
+        <div class="table-responsive mt-4">
+            <table class="table table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Id</th>
+                        <th>Date de réception</th>
+                        <th>Expéditeur</th>
+                        <th>Objet</th>
+                        <th>Visualiser</th>
+                        <th>Modifier</th>
+                        <th>Supprimer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% if archmails is empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">Aucun courrier trouvé</td>
+                    </tr>
+                {% else %}
+                    {% for archmail in archmails %}
+                    <tr>
+                        <td>{{ archmail.id }}</td>
+                        <td>{{ archmail.createdAt|date('d/m/Y') }}</td>
+                        <td>{{ archmail.sender }}</td>
+                        <td class="w-50">{{ archmail.object }}</td>
+                        <td>
+                            {% if archmail.fileName1 == null %}
+                                <span>Aucun fichier</span>
+                            {% else %}
+                                <a href="{{ path('app_mail_download', {'id': archmail.id}) }}" class="btn btn-primary btn-sm" target="_blank">Visualiser</a>
+                            {% endif %}
+                        </td>
+                        <td><a href="{{ path('app_mail_edit', {'id': archmail.id}) }}" class="btn btn-warning btn-sm">Modifier</a></td>
+                        <td>
+                            <a href="#" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmationModal{{ archmail.id }}">
+                                Supprimer
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Modal de confirmation de suppression -->
+                    <div class="modal fade" id="confirmationModal{{ archmail.id }}" tabindex="-1" aria-labelledby="confirmationModalLabel{{ archmail.id }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="confirmationModalLabel{{ archmail.id }}">Confirmation de suppression</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Êtes-vous sûr de vouloir supprimer ce courrier ?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                    <a href="{{ path('app_mail_delete', {'id': archmail.id}) }}" class="btn btn-danger">Supprimer</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+        <div class="navigation mx-auto">
+            {{ knp_pagination_render(archmails) }}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de prévisualisation -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" style="max-width: 80%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalLabel">Prévisualisation du fichier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalPreviewContainer" class="d-flex justify-content-center align-items-center">
+                    <img id="modalImagePreview" src="#" alt="Image Preview" style="max-width: 100%; display: none;">
+                    <iframe id="modalFilePreview" style="width: 100%; height: 500px; display: none; border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function previewFile(input, nextFileId) {
+        var imagePreview = document.getElementById('imagePreview');
+        var filePreview = document.getElementById('filePreview');
+        var modalImagePreview = document.getElementById('modalImagePreview');
+        var modalFilePreview = document.getElementById('modalFilePreview');
+
+        if (input.files && input.files[0]) {
+            var file = input.files[0];
+            var reader = new FileReader();
+            var fileType = file.type;
+
+            reader.onload = function(e) {
+                if (fileType.startsWith('image/')) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    filePreview.style.display = 'none';
+                } else {
+                    imagePreview.style.display = 'none';
+                    filePreview.style.display = 'block';
+                    filePreview.src = URL.createObjectURL(file);
+                    filePreview.style.cursor = 'pointer'; // Ajout du style cursor pointer
+                }
+
+                if (nextFileId) {
+                    document.getElementById('fileFile' + nextFileId + '-group').classList.remove('d-none');
+                }
+            };
+
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function showModalPreview() {
+        var imagePreview = document.getElementById('imagePreview');
+        var filePreview = document.getElementById('filePreview');
+        var modalImagePreview = document.getElementById('modalImagePreview');
+        var modalFilePreview = document.getElementById('modalFilePreview');
+
+        if (imagePreview.style.display === 'block') {
+            modalImagePreview.src = imagePreview.src;
+            modalImagePreview.style.display = 'block';
+            modalFilePreview.style.display = 'none';
+        } else if (filePreview.style.display === 'block') {
+            modalFilePreview.src = filePreview.src;
+            modalFilePreview.style.display = 'block';
+            modalImagePreview.style.display = 'none';
+        }
+
+        var previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+        previewModal.show();
+    }
+</script>
+<script>
+    document.getElementById('search-query').addEventListener('input', function () {
+        const query = this.value;
+
+        if (query.length > 2) {
+            fetch('{{ path('app_mail_suggestions') }}?query=' + query)
+                .then(response => response.json())
+                .then(data => {
+                    const suggestionsList = document.getElementById('suggestions-list');
+                    suggestionsList.innerHTML = '';
+
+                    if (data.length > 0) {
+                        suggestionsList.style.display = 'block';
+
+                        data.forEach(item => {
+                            const listItem = document.createElement('li');
+                            listItem.textContent = item.sender + ' - ' + item.object;
+                            listItem.classList.add('list-group-item');
+                            suggestionsList.appendChild(listItem);
+                        });
+                    } else {
+                        suggestionsList.style.display = 'none';
+                    }
+                });
+        } else {
+            document.getElementById('suggestions-list').style.display = 'none';
+        }
+    });
+</script>
+
+{% endblock %}
