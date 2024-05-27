@@ -1,16 +1,15 @@
 <?php
-
+// src/Form/NewUserType.php
 namespace App\Form;
 
 use App\Entity\User;
-use PharIo\Manifest\Email;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 class NewUserType extends AbstractType
 {
@@ -32,7 +31,7 @@ class NewUserType extends AbstractType
                 ]
             ])
             ->add('submit', SubmitType::class, [
-                'label' => 'Créer un utilisateur',
+                'label' => 'Créer/Mettre à jour',
                 'attr' => [
                     'class' => 'btn btn-primary'
                 ]
